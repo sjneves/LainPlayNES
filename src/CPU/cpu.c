@@ -8,14 +8,19 @@
 
 #define debug
 
+opcode *myOpList; // Tabela com as instruções da CPU
+
+uint8_t clk;
+
 CPU_6502* CPUStart(){
-    CPU_6502 *my_cpu = (CPU_6502*)malloc(sizeof(CPU_6502));
+    CPU_6502 *my_cpu;
+    my_cpu = (CPU_6502*)malloc(sizeof(CPU_6502));
     opcode my_opcodeList[256];
 
-    criaOpcodeLista(my_opcodeList);
+    criaOpcodeLista(my_opcodeList, &clk);
 
     reset(my_cpu);
-    my_cpu->myOpList = my_opcodeList;
+    myOpList = my_opcodeList;
     my_cpu->clk = 0;
 
     return my_cpu;
@@ -26,17 +31,14 @@ int CPUStop(CPU_6502 *my_cpu){
     return 0;
 }
 
-// Lê o endereço de memória passado como parâmetro e retorna o seu valor
-uint8_t fetch(uint16_t addrs){
-    return bus_read(addrs);
-}
-
-int cpu_clock(CPU_6502 *my_cpu){
+int CPUClock(CPU_6502 *my_cpu){
     opcode operacao;
     
-    if(my_cpu->clk == 0){
+    if(clk == 0){
+        uint16_t addrs;
+
         #ifdef debug
-        printf("oi ----> %d\n",my_cpu->clk);
+        printf("oi ----> %d\n", clk);
         printf("PC ----> %x\n", my_cpu->PC);
         #endif
         uint8_t instrucao = fetch(my_cpu->PC);
@@ -45,18 +47,19 @@ int cpu_clock(CPU_6502 *my_cpu){
         #ifdef debug
         printf("ints -> %x\n",instrucao);
         #endif
-        operacao = my_cpu->myOpList[instrucao];
+        operacao = myOpList[instrucao];
+        clk = operacao.ck;
 
-        uint16_t t1 = operacao.mF(my_cpu);
+        uint16_t t1 = operacao.mF(my_cpu, &addrs);
+        
+        uint8_t t2 = operacao.oF(my_cpu, addrs);
 
-        uint8_t t2 = operacao.oF(my_cpu);
-
-        if((t1 + (uint16_t)t2) > 1){
-            my_cpu->clk++;
+        if((t1 + t2) > 1){
+            clk++;
         }
     }
-    my_cpu->clk--;
-    return my_cpu->clk;
+    clk--;
+    return clk;
 }
 
 // Seta todos os parâmetros da CPU para o valor inicial
@@ -66,13 +69,13 @@ int cpu_clock(CPU_6502 *my_cpu){
 // stack pointer. E sendo assim o stack pointer começa com o valor
 // 0x00FF
 // [Atualizar essas informações conforme for avançando]
-void reset(CPU_6502 *regis){
-    regis->PC   = 0x0100;
-    regis->AC   = 0x00;
-    regis->X    = 0x00;
-    regis->Y    = 0x00;
-    regis->SR   = 0x00;
-    regis->SP   = 0xFF;
+void reset(CPU_6502 *my_cpu){
+    my_cpu->PC   = 0x0100;
+    my_cpu->AC   = 0x00;
+    my_cpu->X    = 0x00;
+    my_cpu->Y    = 0x00;
+    my_cpu->SR   = 0x00;
+    my_cpu->SP   = 0xFF;
 }
 
 uint8_t SetFlag(enum FLAGSCPU flag, CPU_6502 *my_cpu, int v){
@@ -115,7 +118,7 @@ void irq(CPU_6502 *my_cpu){
         my_cpu->PC = ((uint16_t)bus_read(0xFFFE) & 0x00FF);
         my_cpu->PC += (((uint16_t)bus_read(0xFFFE + 1) << 8) & 0xFF00);
 
-        my_cpu->clk = 7;
+        clk = 7;
     }
 }
 
@@ -136,5 +139,5 @@ void nmi(CPU_6502 *my_cpu){
     my_cpu->PC = ((uint16_t)bus_read(0xFFFE) & 0x00FF);
     my_cpu->PC += (((uint16_t)bus_read(0xFFFE + 1) << 8) & 0xFF00);
 
-    my_cpu->clk = 7;
+    clk = 7;
 }

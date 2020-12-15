@@ -14,7 +14,7 @@ uint16_t NROM(uint16_t addrs, uint16_t sw){
             return addrs%16384;
         }else{
             printf("Erro no mapper da CPU - NROM\n");
-            exit(1);
+            exit(123);
         }
     }else if((sw & 0xFF00) == 0xF000){
         // PPU
@@ -22,13 +22,14 @@ uint16_t NROM(uint16_t addrs, uint16_t sw){
         printf("nº bancos %d\n", sw & 0x00FF);
         return addrs;
     }else{
-        exit(1);
+        printf("Erro no mapper da PPU - NROM\n");
+        exit(123);
     }
     return 0;
 }
 
 uint16_t mXX(uint16_t addrs, uint16_t sw){
     printf("Mapper ainda não criado!!\n");
-
+    exit(42);
     return 0;
 }

@@ -11,6 +11,7 @@
 #define _H_CPU
 #include<stdint.h>
 
+
 enum FLAGSCPU {
     N = (1 << 7),       // Negative
     V = (1 << 6),       //Overflow
@@ -39,26 +40,18 @@ struct {
     uint8_t SP;     // stack pointer	(8 bit)
 
     // Registradores utilizados para o funcionamento da emulação da CPU
-    struct opcode *myOpList;       // Tabela de instruções da CPU
-    int clk;                // Número de clock da instrução em execução
-    uint16_t addrs;
+    uint8_t clk;
+    uint16_t addrs;         // Vou mudar a forma que a CPU usa o endereço
+                            // Mas manter isso aqui apenas caso me arrependa
     uint8_t opcode;         // Para salvar qual é a instrução em execução
                             // pode ser útil na hora de programar instruções proibidas
 }typedef CPU_6502;
-
-struct opcode {
-    uint16_t (*mF)(CPU_6502*);
-    uint8_t (*oF)(CPU_6502*);
-    uint8_t ck;
-}typedef opcode;
 
 CPU_6502* CPUStart();
 
 int CPUStop(CPU_6502*);
 
-int cpu_clock(CPU_6502*);
-
-uint8_t fetch(uint16_t);
+int CPUClock(CPU_6502*);
 
 void reset(CPU_6502*);
  
