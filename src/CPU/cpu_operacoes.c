@@ -4,8 +4,6 @@
 
 uint8_t impFlag = 0;
 
-uint8_t *ptr_clk;
-
 uint8_t fetch(uint16_t addrs){
     uint8_t fetched = 0x00;
     // fetched = bus_read(addrs);
@@ -13,8 +11,7 @@ uint8_t fetch(uint16_t addrs){
     return fetched;
 }
 
-void criaOpcodeLista(opcode *oL, uint8_t *rec_clk){
-    ptr_clk = rec_clk;
+void criaOpcodeLista(opcode *oL){
 
     oL[0x00].oF = BRK; oL[0x00].mF = IMP; oL[0x00].ck = 7; oL[0x10].oF = ORA; oL[0x10].mF = IZX; oL[0x10].ck = 6; oL[0x20].oF = XXX; oL[0x20].mF = IMP; oL[0x20].ck = 2; oL[0x30].oF = XXX; oL[0x30].mF = IMP; oL[0x30].ck = 8;
     oL[0x01].oF = BPL; oL[0x01].mF = REL; oL[0x01].ck = 2; oL[0x11].oF = ORA; oL[0x11].mF = IZY; oL[0x11].ck = 5; oL[0x21].oF = XXX; oL[0x21].mF = IMP; oL[0x21].ck = 2; oL[0x31].oF = XXX; oL[0x31].mF = IMP; oL[0x31].ck = 8;
@@ -421,12 +418,12 @@ uint8_t ASL(CPU_6502 *MyCPU, uint16_t addrs){
 uint8_t BCC(CPU_6502 *MyCPU, uint16_t addrs){
 
     if(GetFlag(C, MyCPU) == 0){
-        (*ptr_clk)++;
+        MyCPU->clk++;
         
         addrs += MyCPU->PC;
 
         if((addrs & 0xFF00) != (MyCPU->PC & 0xFF00)){
-            (*ptr_clk)++;
+            MyCPU->clk++;
         }
         MyCPU->PC = addrs;
     }
@@ -444,12 +441,12 @@ uint8_t BCC(CPU_6502 *MyCPU, uint16_t addrs){
 //      relative      BCS oper      B0    2     2**
 uint8_t BCS(CPU_6502 *MyCPU, uint16_t addrs){
     if(GetFlag(C, MyCPU) == 1){
-        (*ptr_clk)++;
+        MyCPU->clk++;
 
         addrs += MyCPU->PC;
 
         if((addrs & 0xFF00) != (MyCPU->PC & 0xFF00)){
-            (*ptr_clk)++;
+            MyCPU->clk++;
         }
         MyCPU->PC = addrs;
     }
@@ -467,12 +464,12 @@ uint8_t BCS(CPU_6502 *MyCPU, uint16_t addrs){
 //      relative      BEQ oper      F0    2     2**
 uint8_t BEQ(CPU_6502 *MyCPU, uint16_t addrs){
     if(GetFlag(Z, MyCPU) == 1){
-        (*ptr_clk)++;
+        MyCPU->clk++;
 
         addrs += MyCPU->PC;
 
         if((addrs & 0xFF00) != (MyCPU->PC & 0xFF00)){
-            (*ptr_clk)++;
+            MyCPU->clk++;
         }
         MyCPU->PC = addrs;
     }
@@ -511,12 +508,12 @@ uint8_t BIT(CPU_6502 *MyCPU, uint16_t addrs){
 //      relative      BMI oper      30    2     2**
 uint8_t BMI(CPU_6502 *MyCPU, uint16_t addrs){
     if(GetFlag(N, MyCPU) == 1){
-        (*ptr_clk)++;
+        MyCPU->clk++;
 
         addrs += MyCPU->PC;
 
         if((addrs & 0xFF00) != (MyCPU->PC & 0xFF00)){
-            (*ptr_clk)++;
+            MyCPU->clk++;
         }
         MyCPU->PC = addrs;
     }
@@ -534,12 +531,12 @@ uint8_t BMI(CPU_6502 *MyCPU, uint16_t addrs){
 //      relative      BNE oper      D0    2     2**
 uint8_t BNE(CPU_6502 *MyCPU, uint16_t addrs){
     if(GetFlag(Z, MyCPU) == 0){
-        (*ptr_clk)++;
+        MyCPU->clk++;
 
         addrs += MyCPU->PC;
 
         if((addrs & 0xFF00) != (MyCPU->PC & 0xFF00)){
-            (*ptr_clk)++;
+            MyCPU->clk++;
         }
         MyCPU->PC = addrs;
     }
@@ -558,12 +555,12 @@ uint8_t BNE(CPU_6502 *MyCPU, uint16_t addrs){
 //      relative      BPL oper      10    2     2**
 uint8_t BPL(CPU_6502 *MyCPU, uint16_t addrs){
     if(GetFlag(N, MyCPU) == 0){
-        (*ptr_clk)++;
+        MyCPU->clk++;
 
         addrs += MyCPU->PC;
 
         if((addrs & 0xFF00) != (MyCPU->PC & 0xFF00)){
-            (*ptr_clk)++;
+            MyCPU->clk++;
         }
         MyCPU->PC = addrs;
     }
@@ -607,12 +604,12 @@ uint8_t BRK(CPU_6502 *MyCPU, uint16_t addrs){
 //      relative      BVC oper      50    2     2**
 uint8_t BVC(CPU_6502 *MyCPU, uint16_t addrs){
     if(GetFlag(V, MyCPU) == 0){
-        (*ptr_clk)++;
+        MyCPU->clk++;
 
         addrs += MyCPU->PC;
 
         if((addrs & 0xFF00) != (MyCPU->PC & 0xFF00)){
-            (*ptr_clk)++;
+            MyCPU->clk++;
         }
         MyCPU->PC = addrs;
     }    
@@ -629,12 +626,12 @@ uint8_t BVC(CPU_6502 *MyCPU, uint16_t addrs){
 //      relative      BVC oper      70    2     2**
 uint8_t BVS(CPU_6502 *MyCPU, uint16_t addrs){
     if(GetFlag(V, MyCPU) == 1){
-        (*ptr_clk)++;
+        MyCPU->clk++;
 
         addrs += MyCPU->PC;
 
         if((addrs & 0xFF00) != (MyCPU->PC & 0xFF00)){
-            (*ptr_clk)++;
+            MyCPU->clk++;
         }
         MyCPU->PC = addrs;
     }

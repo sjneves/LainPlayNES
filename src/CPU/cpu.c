@@ -10,14 +10,12 @@
 
 opcode *myOpList; // Tabela com as instruções da CPU
 
-uint8_t clk;
-
 CPU_6502* CPUStart(){
     CPU_6502 *my_cpu;
     my_cpu = (CPU_6502*)malloc(sizeof(CPU_6502));
     opcode my_opcodeList[256];
 
-    criaOpcodeLista(my_opcodeList, &clk);
+    criaOpcodeLista(my_opcodeList);
 
     reset(my_cpu);
     myOpList = my_opcodeList;
@@ -34,11 +32,11 @@ int CPUStop(CPU_6502 *my_cpu){
 int CPUClock(CPU_6502 *my_cpu){
     opcode operacao;
     
-    if(clk == 0){
+    if(my_cpu->clk == 0){
         uint16_t addrs;
 
         #ifdef debug
-        printf("oi ----> %d\n", clk);
+        printf("oi ----> %d\n", my_cpu->clk);
         printf("PC ----> %x\n", my_cpu->PC);
         #endif
         uint8_t instrucao = fetch(my_cpu->PC);
@@ -48,18 +46,18 @@ int CPUClock(CPU_6502 *my_cpu){
         printf("ints -> %x\n",instrucao);
         #endif
         operacao = myOpList[instrucao];
-        clk = operacao.ck;
+        my_cpu->clk = operacao.ck;
 
         uint16_t t1 = operacao.mF(my_cpu, &addrs);
         
         uint8_t t2 = operacao.oF(my_cpu, addrs);
 
         if((t1 + t2) > 1){
-            clk++;
+            my_cpu->clk++;
         }
     }
-    clk--;
-    return clk;
+    my_cpu->clk--;
+    return my_cpu->clk;
 }
 
 // Seta todos os parâmetros da CPU para o valor inicial
@@ -118,7 +116,7 @@ void irq(CPU_6502 *my_cpu){
         my_cpu->PC = ((uint16_t)bus_read(0xFFFE) & 0x00FF);
         my_cpu->PC += (((uint16_t)bus_read(0xFFFE + 1) << 8) & 0xFF00);
 
-        clk = 7;
+        my_cpu->clk = 7;
     }
 }
 
@@ -139,5 +137,5 @@ void nmi(CPU_6502 *my_cpu){
     my_cpu->PC = ((uint16_t)bus_read(0xFFFE) & 0x00FF);
     my_cpu->PC += (((uint16_t)bus_read(0xFFFE + 1) << 8) & 0xFF00);
 
-    clk = 7;
+    my_cpu->clk = 7;
 }

@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "bus.h"
+#include "../CPU/cpu.h"
+#include "../CARTUCHO/cartucho.h"
+
 uint8_t* cpuRAM;
 
 void busStart(){
@@ -20,7 +24,7 @@ uint8_t bus_read(uint16_t mem){
     return dado;
 }
 
-int bus_write(uint16_t mem, uint8_t dado){
+uint8_t bus_write(uint16_t mem, uint8_t dado){
 
     if((mem >= 0x0000) && (mem <= 0x1FFF)){
         cpuRAM[mem%2048] = dado;
@@ -39,4 +43,18 @@ int bus_write(uint16_t mem, uint8_t dado){
  */
 int bus_clock(){
     return 0;
+}
+
+System* newNES(){
+    System *nes = (System*)malloc(sizeof(System));
+
+    nes->CPU = CPUStart();
+    nes->cpuRAM = (uint8_t*)calloc(2 * 1024, sizeof(uint8_t));
+    return nes;
+}
+
+void closeNES(System *nes){
+    CPUStop(nes->CPU);
+    closeCartucho(nes->cartucho);
+    free(nes);
 }

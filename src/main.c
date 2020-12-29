@@ -6,20 +6,16 @@
 #include "CARTUCHO/cartucho.h"
 
 int main(int argv, char **args){
-    CPU_6502 *cpu = CPUStart();
-
+    char *arquivo;
     if(argv>1){
-        inserirCartucho(args[1]);
+        arquivo = args[1];
     }else{
-        inserirCartucho("ROMs/Super-Mario-Bros.-World.nes");
-        inserirCartucho("ROMs/Legend of Zelda, The (U) (PRG1) [!].nes");
-        inserirCartucho("ROMs/Street Fighter 3.nes");
+        printf("Especificar o caminho até uma ROM! \n./exec [ROM]\n");
+        return 1;
     }
+    System *pNES = newNES();
+    pNES->cartucho = inserirCartucho(arquivo);
 
-    printf("1: Test Mapper CPU %x\n",CPUromRead(0x002A));
-    printf("2: Test Mapper CPU %x\n",CPUromRead(0x402A));
-    printf("1: Test Mapper PPU %x\n",PPUromRead(0x002A));
-
-    CPUStop(cpu);
+    closeNES(pNES);
     return 0;
 }

@@ -8,6 +8,7 @@ uint8_t *vNameTable;
 uint8_t *vPalettes;
 
 void ppuStart(){
+    // Talvez dividir o vNameTable em dois
     vNameTable = (uint8_t*)calloc(4096, sizeof(uint8_t));
     vPalettes = (uint8_t*)calloc(32, sizeof(uint8_t));
 }

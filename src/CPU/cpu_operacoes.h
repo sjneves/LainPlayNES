@@ -13,7 +13,7 @@ struct opcode {
 
 uint8_t fetch(uint16_t);
 
-void criaOpcodeLista(opcode*, uint8_t*);
+void criaOpcodeLista(opcode*);
 
 // Funções para trabalhar com acesso a memória
 

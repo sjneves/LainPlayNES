@@ -18,12 +18,21 @@ struct {
     uint16_t (*mapper)(uint16_t, uint16_t);
 }typedef Mapper;
 
-uint8_t inserirCartucho(char*);
+struct {
+    uint8_t *mPRG;
+    uint8_t *mCHR;
+    header myHeader;
+    uint16_t (*mapper)(uint16_t, uint16_t);
+} typedef Cartucho;
 
-uint8_t CPUromRead(uint16_t addrs);
+Cartucho *inserirCartucho(char*);
 
-uint8_t PPUromRead(uint16_t addrs);
+uint8_t CPUromRead(uint16_t, Cartucho*);
 
-void pointMapper(uint8_t);
+uint8_t PPUromRead(uint16_t, Cartucho*);
+
+void closeCartucho(Cartucho*);
+
+void pointMapper(uint8_t, Cartucho*);
 
 #endif

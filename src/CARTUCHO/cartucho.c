@@ -5,14 +5,8 @@
 #include "cartucho.h"
 #include "mappers.h"
 
-// Onde será salva as informações do jogo carregado
-uint8_t *mPRG;
-uint8_t *mCHR;
-header myHeader;
 
-uint16_t (*mapper)(uint16_t, uint16_t);
-
-uint8_t inserirCartucho(char *arquivo){
+Cartucho *inserirCartucho(char *arquivo){
     FILE *rom;
     printf("Abrindo Arquivo: %s\n", arquivo);
     rom = fopen(arquivo, "rb");
@@ -22,33 +16,39 @@ uint8_t inserirCartucho(char *arquivo){
         exit(1);
     }
 
-    fread(&myHeader, sizeof(header), 1, rom);
+    Cartucho *c = (Cartucho*)calloc(1, sizeof(Cartucho));
 
-    printf("CPU banks: %d\nPPU banks: %d\n", myHeader.nPRG, myHeader.nCHR);
+    fread(&c->myHeader, sizeof(header), 1, rom);
+
+    printf("CPU banks: %d\nPPU banks: %d\n", c->myHeader.nPRG, c->myHeader.nCHR);
 
     char lixo[512];
-    if(myHeader.flag6 & 0x04)
+    if(c->myHeader.flag6 & 0x04)
         fread(&lixo, sizeof(uint8_t) * 512, 1, rom);
     
     uint8_t lowMapper;
     uint8_t highMapper;
 
-    lowMapper = ((myHeader.flag6 & 0xF0) >> 4);
-    highMapper = (myHeader.flag7 & 0xF0);
+    lowMapper = ((c->myHeader.flag6 & 0xF0) >> 4);
+    highMapper = (c->myHeader.flag7 & 0xF0);
 
     uint8_t numMapper = lowMapper | highMapper;
-    pointMapper(numMapper);
+    pointMapper(numMapper, c);
 
-    mPRG = calloc(16384, myHeader.nPRG);
-    mCHR = calloc(8192, myHeader.nCHR);
+    c->mPRG = calloc(16384, c->myHeader.nPRG);
+    c->mCHR = calloc(8192, c->myHeader.nCHR);
 
-    fread(mPRG, 16384 * myHeader.nPRG, 1, rom);
-    fread(mCHR, 8192 * myHeader.nCHR, 1, rom);
+    fread(c->mPRG, 16384 * c->myHeader.nPRG, 1, rom);
+    fread(c->mCHR, 8192 * c->myHeader.nCHR, 1, rom);
     fclose(rom);
     return 0;
 }
 
-void pointMapper(uint8_t map){
+void closeCartucho(Cartucho *c){
+    free(c);
+}
+
+void pointMapper(uint8_t map, Cartucho *c){
     Mapper LM[256];
 
     LM[0x00].mapper = NROM;     LM[0x01].mapper = mXX; LM[0x02].mapper = mXX; LM[0x03].mapper = mXX; LM[0x04].mapper = mXX; LM[0x05].mapper = mXX; LM[0x06].mapper = mXX; LM[0x07].mapper = mXX; LM[0x08].mapper = mXX; LM[0x09].mapper = mXX; LM[0x0A].mapper = mXX; LM[0x0B].mapper = mXX; LM[0x0C].mapper = mXX; LM[0x0D].mapper = mXX; LM[0x0E].mapper = mXX; LM[0x0F].mapper = mXX;
@@ -68,27 +68,27 @@ void pointMapper(uint8_t map){
     LM[0xE0].mapper = mXX;      LM[0xE1].mapper = mXX; LM[0xE2].mapper = mXX; LM[0xE3].mapper = mXX; LM[0xE4].mapper = mXX; LM[0xE5].mapper = mXX; LM[0xE6].mapper = mXX; LM[0xE7].mapper = mXX; LM[0xE8].mapper = mXX; LM[0xE9].mapper = mXX; LM[0xEA].mapper = mXX; LM[0xEB].mapper = mXX; LM[0xEC].mapper = mXX; LM[0xED].mapper = mXX; LM[0xEE].mapper = mXX; LM[0xEF].mapper = mXX;
     LM[0xF0].mapper = mXX;      LM[0xF1].mapper = mXX; LM[0xF2].mapper = mXX; LM[0xF3].mapper = mXX; LM[0xF4].mapper = mXX; LM[0xF5].mapper = mXX; LM[0xF6].mapper = mXX; LM[0xF7].mapper = mXX; LM[0xF8].mapper = mXX; LM[0xF9].mapper = mXX; LM[0xFA].mapper = mXX; LM[0xFB].mapper = mXX; LM[0xFC].mapper = mXX; LM[0xFD].mapper = mXX; LM[0xFE].mapper = mXX; LM[0xFF].mapper = mXX;
 
-    mapper = LM[map].mapper;
+    c->mapper = LM[map].mapper;
 }
 
-uint8_t CPUromRead(uint16_t addrs){
+uint8_t CPUromRead(uint16_t addrs, Cartucho *c){
     printf("Entrou no romRead\n");
 
     uint16_t info = 0x0F00;
-    info += ((uint16_t)myHeader.nPRG & 0x00FF);
+    info += ((uint16_t)c->myHeader.nPRG & 0x00FF);
 
-    uint16_t r_addrs = mapper(addrs, info);
+    uint16_t r_addrs = c->mapper(addrs, info);
 
-    return mPRG[r_addrs];
+    return c->mPRG[r_addrs];
 }
 
-uint8_t PPUromRead(uint16_t addrs){
+uint8_t PPUromRead(uint16_t addrs, Cartucho *c){
     printf("Entrou no PPUromRead\n");
 
     uint16_t info = 0xF000;
-    info += ((uint16_t)myHeader.nCHR & 0x00FF);
+    info += ((uint16_t)c->myHeader.nCHR & 0x00FF);
 
-    uint16_t r_addrs = mapper(addrs, info);
+    uint16_t r_addrs = c->mapper(addrs, info);
 
-    return mCHR[r_addrs];
+    return c->mCHR[r_addrs];
 }

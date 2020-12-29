@@ -13,24 +13,50 @@
     função.
 
     Pegar a tabela com os endereços do NES
+
+    Eu sei que tenho a CPU (vou ignorar a PPU no momento, até porque o plano é que o BUS correspondente a ela, seja incorporado nela mesma),
+    e ela é a única que faz acesso a memória, os demais são dispositívos para leitura, e no caso da RAM, para escrita também. Então a ideia,
+    é que o BUS tenha uma struct no formato de lista, onde a cabeça da lista é a CPU, seguida pela memória RAM, que são os únicos diferentes,
+    e os demais serão objetos simples com um endereço de começo e outro de fim e uma função de leitura associada a ele.
 */
 #ifndef _H_BUS
 #define _H_BUS
 
 #include <stdint.h>
 
+#include "../CPU/cpu.h"
+#include "../CARTUCHO/cartucho.h"
+
+struct {
+    CPU_6502 *CPU;
+    uint8_t *cpuRAM;
+    Cartucho *cartucho;
+} typedef System;
+
+/*
+ * Function bus_read(uint16_t)
+ * 
+ * Recebe um endereço de memória e retorna o valor armazenado
+ * naquele endereço.
+*/
 uint8_t bus_read(uint16_t);
 
 /*  
  *  Function bus_write(uint16 endereco, uint8_t informacao)
  *  
- *  Recebe um enderaço de memória onde o dado que será gravado
+ *  Recebe um endereço de memória onde o dado será gravado
  *  e a informação a ser gravada
  * 
 */
 uint8_t bus_write(uint16_t, uint8_t);
 
 int bus_clock();
+
+void busStart();
+
+System* newNES();
+
+void closeNES(System*);
 
 uint8_t* fake_memoria();
 
