@@ -101,20 +101,20 @@ uint8_t GetFlag(enum FLAGSCPU flag, CPU_6502 *my_cpu){
 // Requer 7 ciclos para ser executada
 void irq(CPU_6502 *my_cpu){
     if(GetFlag(I, my_cpu) == 0){
-        bus_write(0x0100 + my_cpu->SP, (uint8_t)((my_cpu->PC >> 8) & 0x00FF));
+        busWrite(0x0100 + my_cpu->SP, (uint8_t)((my_cpu->PC >> 8) & 0x00FF));
         my_cpu->SP--;
-        bus_write(0x0100 + my_cpu->SP, (uint8_t)(my_cpu->PC & 0x00FF));
+        busWrite(0x0100 + my_cpu->SP, (uint8_t)(my_cpu->PC & 0x00FF));
         my_cpu->SP--;
 
         SetFlag(B, my_cpu, 0);
         SetFlag(_, my_cpu, 1);
         SetFlag(I, my_cpu, 1);
 
-        bus_write(0x0100 + my_cpu->SP, my_cpu->SR);
+        busWrite(0x0100 + my_cpu->SP, my_cpu->SR);
         my_cpu->SP--;
 
-        my_cpu->PC = ((uint16_t)bus_read(0xFFFE) & 0x00FF);
-        my_cpu->PC += (((uint16_t)bus_read(0xFFFE + 1) << 8) & 0xFF00);
+        my_cpu->PC = ((uint16_t)busRead(0xFFFE) & 0x00FF);
+        my_cpu->PC += (((uint16_t)busRead(0xFFFE + 1) << 8) & 0xFF00);
 
         my_cpu->clk = 7;
     }
@@ -122,20 +122,20 @@ void irq(CPU_6502 *my_cpu){
 
 // Mesma coisa que o anterior mas o I não precisa ser 0
 void nmi(CPU_6502 *my_cpu){
-    bus_write(0x0100 + my_cpu->SP, (uint8_t)((my_cpu->PC >> 8) & 0x00FF));
+    busWrite(0x0100 + my_cpu->SP, (uint8_t)((my_cpu->PC >> 8) & 0x00FF));
     my_cpu->SP--;
-    bus_write(0x0100 + my_cpu->SP, (uint8_t)(my_cpu->PC & 0x00FF));
+    busWrite(0x0100 + my_cpu->SP, (uint8_t)(my_cpu->PC & 0x00FF));
     my_cpu->SP--;
 
     SetFlag(B, my_cpu, 0);
     SetFlag(_, my_cpu, 1);
     SetFlag(I, my_cpu, 1);
 
-    bus_write(0x0100 + my_cpu->SP, my_cpu->SR);
+    busWrite(0x0100 + my_cpu->SP, my_cpu->SR);
     my_cpu->SP--;
 
-    my_cpu->PC = ((uint16_t)bus_read(0xFFFE) & 0x00FF);
-    my_cpu->PC += (((uint16_t)bus_read(0xFFFE + 1) << 8) & 0xFF00);
+    my_cpu->PC = ((uint16_t)busRead(0xFFFE) & 0x00FF);
+    my_cpu->PC += (((uint16_t)busRead(0xFFFE + 1) << 8) & 0xFF00);
 
     my_cpu->clk = 7;
 }

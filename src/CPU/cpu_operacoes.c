@@ -6,7 +6,7 @@ uint8_t impFlag = 0;
 
 uint8_t fetch(uint16_t addrs){
     uint8_t fetched = 0x00;
-    // fetched = bus_read(addrs);
+    // fetched = busRead(addrs);
     impFlag = 0;
     return fetched;
 }
@@ -139,7 +139,7 @@ uint8_t IMM(CPU_6502 *MyCPU, uint16_t *addrs){
 // informação no PC
 uint8_t ZP0(CPU_6502 *MyCPU, uint16_t *addrs){
     uint16_t addrs_abs;
-    addrs_abs = bus_read(MyCPU->PC);
+    addrs_abs = busRead(MyCPU->PC);
     MyCPU->PC++;
 
     addrs_abs &= 0x00FF;
@@ -157,7 +157,7 @@ uint8_t ZP0(CPU_6502 *MyCPU, uint16_t *addrs){
 // array
 uint8_t ZPX(CPU_6502 *MyCPU, uint16_t *addrs){
     
-    *addrs = bus_read(MyCPU->PC + MyCPU->X);
+    *addrs = busRead(MyCPU->PC + MyCPU->X);
     MyCPU->PC++;
 
     *addrs &= 0x00FF;
@@ -167,7 +167,7 @@ uint8_t ZPX(CPU_6502 *MyCPU, uint16_t *addrs){
 // Da mesma forma que o anterior, mas agora com o registrador Y
 uint8_t ZPY(CPU_6502 *MyCPU, uint16_t *addrs){
     
-    *addrs = bus_read(MyCPU->PC + MyCPU->Y);
+    *addrs = busRead(MyCPU->PC + MyCPU->Y);
     MyCPU->PC++;
 
     *addrs &= 0x00FF;
@@ -178,7 +178,7 @@ uint8_t ZPY(CPU_6502 *MyCPU, uint16_t *addrs){
 // É usado em funções de branch
 uint8_t REL(CPU_6502 *MyCPU, uint16_t *addrs){
     
-    // *addrs = bus_read(MyCPU->PC);
+    // *addrs = busRead(MyCPU->PC);
     MyCPU->PC++;
 
     if(*addrs & 0x80){
@@ -193,9 +193,9 @@ uint8_t REL(CPU_6502 *MyCPU, uint16_t *addrs){
 // no mesmo PC da instrução e a segunda parte está no endereço
 // seguinte (high nibble)
 uint8_t ABS(CPU_6502 *MyCPU, uint16_t *addrs){
-    uint16_t lo = bus_read(MyCPU->PC);
+    uint16_t lo = busRead(MyCPU->PC);
     MyCPU->PC++;
-    uint16_t hi =bus_read(MyCPU->PC);
+    uint16_t hi =busRead(MyCPU->PC);
     MyCPU->PC++;
 
     *addrs = (hi << 8) |  lo;
@@ -212,9 +212,9 @@ uint8_t ABS(CPU_6502 *MyCPU, uint16_t *addrs){
 // uma mudança de página, caso isso tenha ocorrido será necessário
 // mais um ciclo de clock, imagino que para simular essa mudança
 uint8_t ABX(CPU_6502 *MyCPU, uint16_t *addrs){
-    uint16_t lo = bus_read(MyCPU->PC);
+    uint16_t lo = busRead(MyCPU->PC);
     MyCPU->PC++;
-    uint16_t hi = bus_read(MyCPU->PC);
+    uint16_t hi = busRead(MyCPU->PC);
     MyCPU->PC++;
 
     *addrs = (hi << 8) | lo;
@@ -229,9 +229,9 @@ uint8_t ABX(CPU_6502 *MyCPU, uint16_t *addrs){
 
 // Mesma coisa que o anterior mas agora com o registrador Y
 uint8_t ABY(CPU_6502 *MyCPU, uint16_t *addrs){
-    uint16_t lo = bus_read(MyCPU->PC);
+    uint16_t lo = busRead(MyCPU->PC);
     MyCPU->PC++;
-    uint16_t hi = bus_read(MyCPU->PC);
+    uint16_t hi = busRead(MyCPU->PC);
     MyCPU->PC++;
 
     *addrs = (hi << 8) | lo;
@@ -251,20 +251,20 @@ uint8_t ABY(CPU_6502 *MyCPU, uint16_t *addrs){
 // um endereço, que vou ler e aí obter o endereço que me 
 // interessa
 uint8_t IND(CPU_6502 *MyCPU, uint16_t *addrs){
-	uint16_t ptr_lo = bus_read(MyCPU->PC);
+	uint16_t ptr_lo = busRead(MyCPU->PC);
 	MyCPU->PC++;
-	uint16_t ptr_hi = bus_read(MyCPU->PC);
+	uint16_t ptr_hi = busRead(MyCPU->PC);
 	MyCPU->PC++;
 
 	uint16_t ptr = (ptr_hi << 8) | ptr_lo;
 
 	if (ptr_lo == 0x00FF) // Simulate page boundary hardware bug
 	{
-		*addrs = (bus_read(ptr & 0xFF00) << 8) | bus_read(ptr + 0);
+		*addrs = (busRead(ptr & 0xFF00) << 8) | busRead(ptr + 0);
 	}
 	else // Behave normally
 	{
-		*addrs = (bus_read(ptr + 1) << 8) | bus_read(ptr + 0);
+		*addrs = (busRead(ptr + 1) << 8) | busRead(ptr + 0);
 	}
 
 	return 0;
@@ -274,11 +274,11 @@ uint8_t IND(CPU_6502 *MyCPU, uint16_t *addrs){
 // em relação ao meu PC. E aí segue como anteriormente,
 // lendo os próximos 2 endereços para montar o endereço final
 uint8_t IZX(CPU_6502 *MyCPU, uint16_t *addrs){
-    uint16_t t = bus_read(MyCPU->PC);
+    uint16_t t = busRead(MyCPU->PC);
 	MyCPU->PC++;
 
-	uint16_t lo = bus_read((t + MyCPU->X) & 0x00FF);
-	uint16_t hi = bus_read((t + MyCPU->X + 1) & 0x00FF);
+	uint16_t lo = busRead((t + MyCPU->X) & 0x00FF);
+	uint16_t hi = busRead((t + MyCPU->X + 1) & 0x00FF);
 
     *addrs = (hi << 8) | lo;
     return  1;
@@ -287,11 +287,11 @@ uint8_t IZX(CPU_6502 *MyCPU, uint16_t *addrs){
 
 // Mesma coisa que o anterior mas agora para Y
 uint8_t IZY(CPU_6502 *MyCPU, uint16_t *addrs){
-    uint16_t t = bus_read(MyCPU->PC);
+    uint16_t t = busRead(MyCPU->PC);
 	MyCPU->PC++;
 
-	uint16_t lo = bus_read((t + MyCPU->Y) & 0x00FF);
-	uint16_t hi = bus_read((t + MyCPU->Y + 1) & 0x00FF);
+	uint16_t lo = busRead((t + MyCPU->Y) & 0x00FF);
+	uint16_t hi = busRead((t + MyCPU->Y + 1) & 0x00FF);
     
     *addrs = (hi << 8) | lo;
 
@@ -399,7 +399,7 @@ uint8_t ASL(CPU_6502 *MyCPU, uint16_t addrs){
     if(addrs == 0){
         MyCPU->AC = (temp & 0x00FF);
     }else{
-        bus_write(addrs, temp & 0x00FF);
+        busWrite(addrs, temp & 0x00FF);
     }
     
     return 0;
@@ -579,17 +579,17 @@ uint8_t BRK(CPU_6502 *MyCPU, uint16_t addrs){
     MyCPU->PC++;
 
     SetFlag(I, MyCPU, 1);
-    bus_write(0x0100 + MyCPU->SP, (MyCPU->PC >> 8) & 0x00FF);
+    busWrite(0x0100 + MyCPU->SP, (MyCPU->PC >> 8) & 0x00FF);
     MyCPU->SP--;
-    bus_write(0x0100 + MyCPU->SP, MyCPU->PC & 0x00FF);
+    busWrite(0x0100 + MyCPU->SP, MyCPU->PC & 0x00FF);
     MyCPU->SP--;
 
     SetFlag(B, MyCPU, 1);
-    bus_write(0x0100 + MyCPU->SP, MyCPU->PC & 0x00FF);
+    busWrite(0x0100 + MyCPU->SP, MyCPU->PC & 0x00FF);
     MyCPU->SP--;
     SetFlag(B, MyCPU, 0);
 
-    MyCPU->PC = ((uint16_t)bus_read(0xFFFE) | (uint16_t)bus_read(0xFFFF) << 8);
+    MyCPU->PC = ((uint16_t)busRead(0xFFFE) | (uint16_t)busRead(0xFFFF) << 8);
     return 0;
 }
 
@@ -764,7 +764,7 @@ uint8_t CPY(CPU_6502 *MyCPU, uint16_t addrs){
 //      absolute,X    DEC oper,X    DE    3     7
 uint8_t DEC(CPU_6502 *MyCPU, uint16_t addrs){
     uint16_t temp = fetch(addrs) - 1;
-    bus_write(addrs, temp & 0x00FF);
+    busWrite(addrs, temp & 0x00FF);
     SetFlag(Z, MyCPU, (temp & 0x00FF) == 0x0000);
     SetFlag(N, MyCPU, temp & 0x0080);
     return 0;
@@ -835,7 +835,7 @@ uint8_t EOR(CPU_6502 *MyCPU, uint16_t addrs){
 //      absolute,X    INC oper,X    FE    3     7
 uint8_t INC(CPU_6502 *MyCPU, uint16_t addrs){
     uint8_t temp = fetch(addrs) + 1;
-    bus_write(addrs, temp);
+    busWrite(addrs, temp);
     SetFlag(Z, MyCPU, temp == 0x00);
     SetFlag(N, MyCPU, temp & 0x80);
     return 0;
@@ -897,9 +897,9 @@ uint8_t JMP(CPU_6502 *MyCPU, uint16_t addrs){
 uint8_t JSR(CPU_6502 *MyCPU, uint16_t addrs){
     MyCPU->PC--;
 
-    bus_write(0x0100 + MyCPU->SP, (MyCPU->PC >> 8) & 0x00FF);
+    busWrite(0x0100 + MyCPU->SP, (MyCPU->PC >> 8) & 0x00FF);
     MyCPU->SP--;
-    bus_write(0x0100 + MyCPU->SP, MyCPU->PC & 0x00FF);
+    busWrite(0x0100 + MyCPU->SP, MyCPU->PC & 0x00FF);
     MyCPU->SP--;
 
     MyCPU->PC = addrs;
@@ -990,7 +990,7 @@ uint8_t LSR(CPU_6502 *MyCPU, uint16_t addrs){
         MyCPU->AC = temp;
         impFlag = 0;
     }else{
-        bus_write(addrs, temp);
+        busWrite(addrs, temp);
     }
     return 0;
 }
@@ -1039,7 +1039,7 @@ uint8_t ORA(CPU_6502 *MyCPU, uint16_t addrs){
 //      --------------------------------------------
 //      implied       PHA           48    1     3
 uint8_t PHA(CPU_6502 *MyCPU, uint16_t addrs){
-    bus_write(0x0100 + MyCPU->SP, MyCPU->AC);
+    busWrite(0x0100 + MyCPU->SP, MyCPU->AC);
     MyCPU->SP--;
     return 0;
 }
@@ -1053,7 +1053,7 @@ uint8_t PHA(CPU_6502 *MyCPU, uint16_t addrs){
 //      --------------------------------------------
 //      implied       PHP           08    1     3
 uint8_t PHP(CPU_6502 *MyCPU, uint16_t addrs){
-    bus_write(0x0100 + MyCPU->SP, MyCPU->SR | B | _);
+    busWrite(0x0100 + MyCPU->SP, MyCPU->SR | B | _);
     SetFlag(B, MyCPU, 0);
     SetFlag(_, MyCPU, 0);
     return 0;
@@ -1069,7 +1069,7 @@ uint8_t PHP(CPU_6502 *MyCPU, uint16_t addrs){
 //      implied       PLA           68    1     4
 uint8_t PLA(CPU_6502 *MyCPU, uint16_t addrs){
     MyCPU->SP++;
-    MyCPU->AC = bus_read(0x0100 + MyCPU->SP);
+    MyCPU->AC = busRead(0x0100 + MyCPU->SP);
     SetFlag(Z, MyCPU, MyCPU->AC == 0x00);
     SetFlag(N, MyCPU, MyCPU->AC & 0x80);
     return 0;
@@ -1085,7 +1085,7 @@ uint8_t PLA(CPU_6502 *MyCPU, uint16_t addrs){
 //      implied       PLP           28    1     4
 uint8_t PLP(CPU_6502 *MyCPU, uint16_t addrs){
     MyCPU->SP++;
-    MyCPU->SR = bus_read(0x0100 + MyCPU->SP);
+    MyCPU->SR = busRead(0x0100 + MyCPU->SP);
     SetFlag(_, MyCPU, 1);
     return 0;
 }
@@ -1121,7 +1121,7 @@ uint8_t ROL(CPU_6502 *MyCPU, uint16_t addrs){
         MyCPU->AC = (temp & 0x00FF);
         impFlag = 0;
     }else{
-        bus_write(addrs, (temp & 0x00FF));
+        busWrite(addrs, (temp & 0x00FF));
     }
 
     return 0;
@@ -1156,7 +1156,7 @@ uint8_t ROR(CPU_6502 *MyCPU, uint16_t addrs){
         MyCPU->AC = (temp & 0x00FF);
         impFlag = 0;
     }else{
-        bus_write(addrs, (temp & 0x00FF));
+        busWrite(addrs, (temp & 0x00FF));
     }
 
     return 0;
@@ -1175,15 +1175,15 @@ uint8_t RTI(CPU_6502 *MyCPU, uint16_t addrs){
     // Aqui eu estou recuperando o estado das flags
     // antes da interrupção
     MyCPU->SP++;
-    MyCPU->SR = bus_read(0x0100 + MyCPU->SP);
+    MyCPU->SR = busRead(0x0100 + MyCPU->SP);
     SetFlag(B, MyCPU, 0);
     SetFlag(_, MyCPU, 0);
 
     // Agora recuperar o valor do PC
     MyCPU->SP++;
-    MyCPU->PC = (uint16_t)bus_read(0x0100 + MyCPU->SP);
+    MyCPU->PC = (uint16_t)busRead(0x0100 + MyCPU->SP);
     MyCPU->SP++;
-    MyCPU->PC |= ((uint16_t)bus_read(0x0100 + MyCPU->SP) << 8);
+    MyCPU->PC |= ((uint16_t)busRead(0x0100 + MyCPU->SP) << 8);
 
     return 0;
 }
@@ -1199,9 +1199,9 @@ uint8_t RTI(CPU_6502 *MyCPU, uint16_t addrs){
 uint8_t RTS(CPU_6502 *MyCPU, uint16_t addrs){
     
     MyCPU->SP++;
-    MyCPU->PC = (uint16_t)bus_read(0x0100 + MyCPU->SP);
+    MyCPU->PC = (uint16_t)busRead(0x0100 + MyCPU->SP);
     MyCPU->SP++;
-    MyCPU->PC |= ((uint16_t)bus_read(0x0100 + MyCPU->SP) << 8);
+    MyCPU->PC |= ((uint16_t)busRead(0x0100 + MyCPU->SP) << 8);
 
     MyCPU->PC++;
 
@@ -1289,7 +1289,7 @@ uint8_t SEI(CPU_6502 *MyCPU, uint16_t addrs){
 //      (indirect,X)  STA (oper,X)  81    2     6
 //      (indirect),Y  STA (oper),Y  91    2     6
 uint8_t STA(CPU_6502 *MyCPU, uint16_t addrs){
-    bus_write(addrs, MyCPU->AC);
+    busWrite(addrs, MyCPU->AC);
     return 0;
 }
 
@@ -1304,7 +1304,7 @@ uint8_t STA(CPU_6502 *MyCPU, uint16_t addrs){
 //      zeropage,Y    STX oper,Y    96    2     4
 //      absolute      STX oper      8E    3     4
 uint8_t STX(CPU_6502 *MyCPU, uint16_t addrs){
-    bus_write(addrs, MyCPU->X);
+    busWrite(addrs, MyCPU->X);
     return 0;
 }
 
@@ -1319,7 +1319,7 @@ uint8_t STX(CPU_6502 *MyCPU, uint16_t addrs){
 //      zeropage,X    STY oper,X    94    2     4
 //      absolute      STY oper      8C    3     4
 uint8_t STY(CPU_6502 *MyCPU, uint16_t addrs){
-    bus_write(addrs, MyCPU->Y);
+    busWrite(addrs, MyCPU->Y);
     return 0;
 }
 
