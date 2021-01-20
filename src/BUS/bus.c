@@ -1,5 +1,3 @@
-
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -9,11 +7,7 @@
 
 uint8_t* cpuRAM;
 
-void busStart(){
-    cpuRAM = (uint8_t*)calloc(2 * 1024, sizeof(uint8_t));
-}
-
-uint8_t bus_read(uint16_t mem){
+uint8_t busRead(uint16_t mem){
     uint8_t dado = 0x00;
 
     if((mem >= 0x0000) && (mem <= 0x1FFF)){
@@ -24,7 +18,7 @@ uint8_t bus_read(uint16_t mem){
     return dado;
 }
 
-uint8_t bus_write(uint16_t mem, uint8_t dado){
+uint8_t busWrite(uint16_t mem, uint8_t dado){
 
     if((mem >= 0x0000) && (mem <= 0x1FFF)){
         cpuRAM[mem%2048] = dado;
